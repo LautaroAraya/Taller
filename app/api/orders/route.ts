@@ -30,11 +30,34 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
+    // Validar datos obligatorios
+    const name = String(body.customerName || '').trim();
+    const phone = String(body.customerPhone || '').trim();
+    const digits = phone.replace(/\D/g, '');
+    if (!name || digits.length < 7) {
+      return NextResponse.json(
+        { error: 'Nombre y teléfono válidos son obligatorios' },
+        { status: 400 }
+      );
+    }
+    // Generar número de orden incremental simple: ORD-00001
+    const lastOrder = await prisma.order.findFirst({
+      orderBy: { createdAt: 'desc' },
+      select: { orderNumber: true },
+    });
+    const extractNumber = (ord?: string | null) => {
+      if (!ord) return 0;
+      const m = ord.match(/(\d+)$/);
+      return m ? parseInt(m[1], 10) : 0;
+    };
+    const next = extractNumber(lastOrder?.orderNumber) + 1;
+    const orderNumber = `ORD-${String(next).padStart(5, '0')}`;
+
     const order = await prisma.order.create({
       data: {
-        customerName: body.customerName,
-        customerPhone: body.customerPhone,
+        orderNumber,
+        customerName: name,
+        customerPhone: phone,
         total: body.total,
         items: {
           create: body.items.map((item: any) => ({

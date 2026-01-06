@@ -16,8 +16,8 @@ export async function PUT(
   try {
     const body = await request.json();
     
-    // Confirmar pedido y descontar stock
-    if (body.status === 'CONFIRMED') {
+    // Descontar stock solo cuando el pedido se marca como PAGADO
+    if (body.status === 'PAID') {
       const order = await prisma.order.findUnique({
         where: { id: params.id },
         include: { items: true },

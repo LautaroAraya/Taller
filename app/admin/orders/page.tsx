@@ -17,6 +17,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  orderNumber?: string | null;
   customerName: string;
   customerPhone: string;
   total: number;
@@ -31,6 +32,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'SENT' | 'PAID' | 'CANCELLED'>('ALL');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -84,7 +86,8 @@ export default function OrdersPage() {
   const getStatusBadge = (status: string) => {
     const badges = {
       PENDING: 'bg-yellow-100 text-yellow-800',
-      CONFIRMED: 'bg-green-100 text-green-800',
+      SENT: 'bg-blue-100 text-blue-800',
+      PAID: 'bg-green-100 text-green-800',
       CANCELLED: 'bg-red-100 text-red-800',
     };
     return badges[status as keyof typeof badges] || badges.PENDING;
@@ -93,7 +96,8 @@ export default function OrdersPage() {
   const getStatusText = (status: string) => {
     const texts = {
       PENDING: 'Pendiente',
-      CONFIRMED: 'Confirmado',
+      SENT: 'Enviado por WhatsApp',
+      PAID: 'Pagado',
       CANCELLED: 'Cancelado',
     };
     return texts[status as keyof typeof texts] || status;
@@ -113,10 +117,36 @@ export default function OrdersPage() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Filtros por estado */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {(
+            [
+              { key: 'ALL', label: 'Todos' },
+              { key: 'PENDING', label: 'Pendientes' },
+              { key: 'SENT', label: 'Enviados WhatsApp' },
+              { key: 'PAID', label: 'Pagados' },
+              { key: 'CANCELLED', label: 'Cancelados' },
+            ] as const
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setStatusFilter(key)}
+              className={`px-3 py-1 rounded-full text-sm font-semibold border ${
+                statusFilter === key
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-200">
               <tr>
+                <th className="px-4 py-3 text-left font-bold text-gray-900">N° Orden</th>
                 <th className="px-4 py-3 text-left font-bold text-gray-900">Cliente</th>
                 <th className="px-4 py-3 text-left font-bold text-gray-900">Teléfono</th>
                 <th className="px-4 py-3 text-right font-bold text-gray-900">Total</th>
@@ -126,8 +156,12 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
+              {(statusFilter === 'ALL'
+                ? orders
+                : orders.filter((o) => o.status === statusFilter)
+              ).map((order) => (
                 <tr key={order.id} className="border-t">
+                  <td className="px-4 py-3 font-mono text-sm text-gray-900">{order?.orderNumber ?? '—'}</td>
                   <td className="px-4 py-3 font-semibold text-gray-900">{order.customerName}</td>
                   <td className="px-4 py-3 text-gray-900">{order.customerPhone}</td>
                   <td className="px-4 py-3 text-right font-bold text-green-600">
@@ -142,12 +176,23 @@ export default function OrdersPage() {
                     {new Date(order.createdAt).toLocaleString('es-AR')}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => setSelectedOrder(order)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Ver Detalles
-                    </button>
+                    <div className="flex items-center justify-center gap-3">
+                      {order.status === 'PENDING' && (
+                        <button
+                          onClick={() => updateOrderStatus(order.id, 'SENT')}
+                          className="text-blue-600 hover:underline"
+                          title="Marcar como enviado por WhatsApp"
+                        >
+                          Enviar WSP ✓
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setSelectedOrder(order)}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Ver Detalles
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -214,13 +259,21 @@ export default function OrdersPage() {
               </span>
             </div>
 
-            {selectedOrder.status === 'PENDING' && (
+            {(selectedOrder.status === 'PENDING' || selectedOrder.status === 'SENT') && (
               <div className="flex gap-2">
+                {selectedOrder.status === 'PENDING' && (
+                  <button
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'SENT')}
+                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold"
+                  >
+                    ↗ Marcar Enviado por WhatsApp
+                  </button>
+                )}
                 <button
-                  onClick={() => updateOrderStatus(selectedOrder.id, 'CONFIRMED')}
+                  onClick={() => updateOrderStatus(selectedOrder.id, 'PAID')}
                   className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold"
                 >
-                  ✓ Confirmar Venta
+                  ✓ Pagado
                 </button>
                 <button
                   onClick={() => updateOrderStatus(selectedOrder.id, 'CANCELLED')}

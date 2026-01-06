@@ -9,22 +9,75 @@ const WHATSAPP_NUMBER = '3498619624';
 export default function Cart() {
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+  const [creatingOrder, setCreatingOrder] = useState(false);
 
-  const sendToWhatsApp = () => {
+  const isValidPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    return digits.length >= 7 && digits.length <= 15;
+  };
+
+  const validate = () => {
+    const next: { name?: string; phone?: string } = {};
+    if (!customerName.trim()) next.name = 'Ingresá el nombre del cliente';
+    if (!customerPhone.trim()) {
+      next.phone = 'Ingresá el teléfono';
+    } else if (!isValidPhone(customerPhone)) {
+      next.phone = 'Teléfono inválido (mín. 7 dígitos)';
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const sendToWhatsApp = async () => {
     if (items.length === 0) return;
+    if (!validate()) return;
 
-    const message = items
+    setCreatingOrder(true);
+    // Crear pedido en backend
+    try {
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: customerName || 'Cliente',
+          customerPhone: customerPhone || '—',
+          total: getTotal(),
+          items: items.map((i) => ({ productId: i.id, quantity: i.quantity, price: i.price })),
+        }),
+      });
+      const orderData = await orderRes.json();
+
+      // Marcar como enviado por WhatsApp
+      if (orderData?.id) {
+        await fetch(`/api/orders/${orderData.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'SENT' }),
+        });
+      }
+
+      const message = items
       .map(
         (item) =>
           `• ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`
       )
       .join('\n');
 
-    const total = getTotal();
-    const fullMessage = `*Consulta de Productos*\n\n${message}\n\n*Total: $${total.toFixed(2)}*`;
+      const total = getTotal();
+      const fullMessage = `*Pedido ${orderData?.orderNumber ?? ''}*\n*Cliente:* ${customerName || 'Cliente'}\n*Teléfono:* ${customerPhone || '—'}\n\n${message}\n\n*Total: $${total.toFixed(2)}*`;
 
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(fullMessage)}`;
-    window.open(whatsappUrl, '_blank');
+      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(fullMessage)}`;
+      window.open(whatsappUrl, '_blank');
+      setIsOpen(false);
+      clearCart();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCreatingOrder(false);
+    }
   };
 
   return (
@@ -121,6 +174,34 @@ export default function Cart() {
                 </div>
 
                 <div className="border-t pt-4 mb-4">
+                  {/* Datos del cliente */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <div>
+                      <input
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Nombre del cliente"
+                        className={`border rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 w-full ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                        required
+                      />
+                      {errors.name && (
+                        <p className="text-red-600 text-xs mt-1">{errors.name}</p>
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="Teléfono del cliente"
+                        className={`border rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 w-full ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                        inputMode="tel"
+                        required
+                      />
+                      {errors.phone && (
+                        <p className="text-red-600 text-xs mt-1">{errors.phone}</p>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex justify-between items-center text-lg font-bold mb-4">
                     <span className="text-gray-900">Total:</span>
                     <span className="text-green-600">
@@ -141,9 +222,10 @@ export default function Cart() {
                   </button>
                   <button
                     onClick={sendToWhatsApp}
-                    className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                    disabled={creatingOrder || !customerName.trim() || !isValidPhone(customerPhone)}
+                    className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold disabled:opacity-70"
                   >
-                    💬 WhatsApp
+                    {creatingOrder ? 'Creando pedido...' : '💬 WhatsApp'}
                   </button>
                 </div>
               </>
