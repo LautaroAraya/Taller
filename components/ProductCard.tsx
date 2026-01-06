@@ -115,22 +115,22 @@ export default function ProductCard({ product }: { product: Product }) {
       {showCart && cart.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-xl font-bold mb-4">Carrito de Compras</h3>
+            <h3 className="text-2xl font-bold mb-4 text-gray-900">Carrito de Compras</h3>
             <div className="space-y-3 mb-4">
               {cart.map(item => (
                 <div key={item.product.id} className="flex justify-between items-center border-b pb-2">
                   <div>
-                    <p className="font-semibold">{item.product.name}</p>
-                    <p className="text-sm text-gray-600">x{item.quantity}</p>
+                    <p className="font-semibold text-gray-900">{item.product.name}</p>
+                    <p className="text-sm text-gray-800 font-medium">x{item.quantity}</p>
                   </div>
-                  <p className="font-bold">${(item.product.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-bold text-gray-900">${(item.product.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
             </div>
             <div className="border-t pt-3 mb-4">
               <div className="flex justify-between items-center text-lg font-bold">
-                <span>Total:</span>
-                <span className="text-green-600">
+                <span className="text-gray-900">Total:</span>
+                <span className="text-green-700">
                   ${cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0).toFixed(2)}
                 </span>
               </div>
@@ -138,7 +138,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowCart(false)}
-                className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                className="flex-1 bg-gray-300 text-gray-900 py-2 rounded-lg hover:bg-gray-400 transition-colors font-semibold"
               >
                 Cerrar
               </button>

@@ -126,45 +126,45 @@ export default function UsersPage() {
 
         {showForm && (
           <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-            <h2 className="text-xl font-bold mb-4">Nuevo Usuario</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Nuevo Usuario</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Nombre *</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Nombre *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Email *</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Email *</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Contraseña *</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Contraseña *</label>
                 <input
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
                   required
                   minLength={6}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Rol *</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Rol *</label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900"
                   required
                 >
                   <option value="EMPLOYEE">Empleado</option>
@@ -181,7 +181,7 @@ export default function UsersPage() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="bg-gray-300 px-6 py-2 rounded-lg hover:bg-gray-400"
+                  className="bg-gray-300 text-gray-900 font-semibold px-6 py-2 rounded-lg hover:bg-gray-400"
                 >
                   Cancelar
                 </button>
@@ -192,20 +192,20 @@ export default function UsersPage() {
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left">Nombre</th>
-                <th className="px-4 py-3 text-left">Email</th>
-                <th className="px-4 py-3 text-center">Rol</th>
-                <th className="px-4 py-3 text-left">Creado</th>
-                <th className="px-4 py-3 text-center">Acciones</th>
+                <th className="px-4 py-3 text-left font-bold text-gray-900">Nombre</th>
+                <th className="px-4 py-3 text-left font-bold text-gray-900">Email</th>
+                <th className="px-4 py-3 text-center font-bold text-gray-900">Rol</th>
+                <th className="px-4 py-3 text-left font-bold text-gray-900">Creado</th>
+                <th className="px-4 py-3 text-center font-bold text-gray-900">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
                 <tr key={user.id} className="border-t">
-                  <td className="px-4 py-3 font-semibold">{user.name}</td>
-                  <td className="px-4 py-3">{user.email}</td>
+                  <td className="px-4 py-3 font-semibold text-gray-900">{user.name}</td>
+                  <td className="px-4 py-3 text-gray-900">{user.email}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                       user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
@@ -213,7 +213,7 @@ export default function UsersPage() {
                       {user.role === 'ADMIN' ? 'Administrador' : 'Empleado'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-gray-900">
                     {new Date(user.createdAt).toLocaleDateString('es-AR')}
                   </td>
                   <td className="px-4 py-3 text-center">

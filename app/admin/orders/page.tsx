@@ -115,21 +115,21 @@ export default function OrdersPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left">Cliente</th>
-                <th className="px-4 py-3 text-left">Teléfono</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3 text-center">Estado</th>
-                <th className="px-4 py-3 text-left">Fecha</th>
-                <th className="px-4 py-3 text-center">Acciones</th>
+                <th className="px-4 py-3 text-left font-bold text-gray-900">Cliente</th>
+                <th className="px-4 py-3 text-left font-bold text-gray-900">Teléfono</th>
+                <th className="px-4 py-3 text-right font-bold text-gray-900">Total</th>
+                <th className="px-4 py-3 text-center font-bold text-gray-900">Estado</th>
+                <th className="px-4 py-3 text-left font-bold text-gray-900">Fecha</th>
+                <th className="px-4 py-3 text-center font-bold text-gray-900">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id} className="border-t">
-                  <td className="px-4 py-3 font-semibold">{order.customerName}</td>
-                  <td className="px-4 py-3">{order.customerPhone}</td>
+                  <td className="px-4 py-3 font-semibold text-gray-900">{order.customerName}</td>
+                  <td className="px-4 py-3 text-gray-900">{order.customerPhone}</td>
                   <td className="px-4 py-3 text-right font-bold text-green-600">
                     ${order.total.toFixed(2)}
                   </td>
@@ -138,7 +138,7 @@ export default function OrdersPage() {
                       {getStatusText(order.status)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
+                  <td className="px-4 py-3 text-sm text-gray-900">
                     {new Date(order.createdAt).toLocaleString('es-AR')}
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -155,7 +155,7 @@ export default function OrdersPage() {
           </table>
 
           {orders.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-800 font-medium text-lg">
               No hay pedidos registrados
             </div>
           )}
@@ -168,8 +168,8 @@ export default function OrdersPage() {
           <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-bold">Detalle del Pedido</h2>
-                <p className="text-gray-600 mt-1">{new Date(selectedOrder.createdAt).toLocaleString('es-AR')}</p>
+                <h2 className="text-2xl font-bold text-gray-900">Detalle del Pedido</h2>
+                <p className="text-gray-800 font-medium mt-1">{new Date(selectedOrder.createdAt).toLocaleString('es-AR')}</p>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
@@ -180,21 +180,21 @@ export default function OrdersPage() {
             </div>
 
             <div className="mb-6">
-              <h3 className="font-semibold mb-2">Cliente</h3>
-              <p>{selectedOrder.customerName}</p>
-              <p className="text-gray-600">{selectedOrder.customerPhone}</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Cliente</h3>
+              <p className="text-gray-900">{selectedOrder.customerName}</p>
+              <p className="text-gray-800">{selectedOrder.customerPhone}</p>
             </div>
 
             <div className="mb-6">
-              <h3 className="font-semibold mb-3">Productos</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">Productos</h3>
               <div className="space-y-2">
                 {selectedOrder.items.map((item) => (
                   <div key={item.id} className="flex justify-between items-center border-b pb-2">
                     <div>
-                      <p className="font-medium">{item.product.name}</p>
-                      <p className="text-sm text-gray-600">Cantidad: {item.quantity}</p>
+                      <p className="font-medium text-gray-900">{item.product.name}</p>
+                      <p className="text-sm text-gray-800 font-medium">Cantidad: {item.quantity}</p>
                     </div>
-                    <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
                   </div>
                 ))}
               </div>
@@ -202,13 +202,13 @@ export default function OrdersPage() {
 
             <div className="border-t pt-4 mb-6">
               <div className="flex justify-between items-center text-xl font-bold">
-                <span>Total:</span>
-                <span className="text-green-600">${selectedOrder.total.toFixed(2)}</span>
+                <span className="text-gray-900">Total:</span>
+                <span className="text-green-700">${selectedOrder.total.toFixed(2)}</span>
               </div>
             </div>
 
             <div className="mb-6">
-              <h3 className="font-semibold mb-2">Estado Actual</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Estado Actual</h3>
               <span className={`inline-block px-4 py-2 rounded-full font-semibold ${getStatusBadge(selectedOrder.status)}`}>
                 {getStatusText(selectedOrder.status)}
               </span>

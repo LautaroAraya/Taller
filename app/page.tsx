@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -10,15 +11,37 @@ export default async function Home() {
     orderBy: { createdAt: 'desc' },
   });
 
+  // Obtener configuración del taller
+  let settings = await prisma.settings.findFirst();
+  if (!settings) {
+    settings = await prisma.settings.create({
+      data: {
+        shopName: 'Taller Mecánico',
+        shopSubtitle: 'Repuestos y Mercadería',
+      },
+    });
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-blue-600 text-white shadow-lg">
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold">🔧 Taller Mecánico</h1>
-              <p className="text-blue-100 mt-1">Repuestos y Mercadería</p>
+            <div className="flex items-center gap-4">
+              {settings.logo && (
+                <Image
+                  src={settings.logo}
+                  alt="Logo"
+                  width={60}
+                  height={60}
+                  className="object-contain bg-white rounded-lg p-1"
+                />
+              )}
+              <div>
+                <h1 className="text-3xl font-bold">{settings.logo ? settings.shopName : `🔧 ${settings.shopName}`}</h1>
+                <p className="text-blue-100 mt-1">{settings.shopSubtitle}</p>
+              </div>
             </div>
             {session && (
               <Link

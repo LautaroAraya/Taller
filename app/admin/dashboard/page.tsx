@@ -115,19 +115,19 @@ export default function DashboardPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-600 text-sm font-semibold">Total Productos</h3>
+            <h3 className="text-gray-800 text-sm font-bold">Total Productos</h3>
             <p className="text-3xl font-bold text-blue-600 mt-2">{products.length}</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-600 text-sm font-semibold">Pedidos Pendientes</h3>
+            <h3 className="text-gray-800 text-sm font-bold">Pedidos Pendientes</h3>
             <p className="text-3xl font-bold text-yellow-600 mt-2">{pendingOrders.length}</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-600 text-sm font-semibold">Stock Bajo</h3>
+            <h3 className="text-gray-800 text-sm font-bold">Stock Bajo</h3>
             <p className="text-3xl font-bold text-orange-600 mt-2">{lowStockProducts.length}</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-gray-600 text-sm font-semibold">Sin Stock</h3>
+            <h3 className="text-gray-800 text-sm font-bold">Sin Stock</h3>
             <p className="text-3xl font-bold text-red-600 mt-2">{outOfStockProducts.length}</p>
           </div>
         </div>
@@ -139,14 +139,14 @@ export default function DashboardPage() {
             className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow"
           >
             <h3 className="text-xl font-bold text-gray-800 mb-2">📦 Gestionar Productos</h3>
-            <p className="text-gray-600">Agregar, editar o eliminar productos del catálogo</p>
+            <p className="text-gray-800">Agregar, editar o eliminar productos del catálogo</p>
           </Link>
           <Link
             href="/admin/orders"
             className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow"
           >
             <h3 className="text-xl font-bold text-gray-800 mb-2">📋 Ver Pedidos</h3>
-            <p className="text-gray-600">Confirmar ventas y gestionar pedidos</p>
+            <p className="text-gray-800">Confirmar ventas y gestionar pedidos</p>
           </Link>
           {isAdmin && (
             <Link
@@ -154,7 +154,16 @@ export default function DashboardPage() {
               className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow"
             >
               <h3 className="text-xl font-bold text-gray-800 mb-2">👥 Gestionar Usuarios</h3>
-              <p className="text-gray-600">Administrar usuarios del sistema</p>
+              <p className="text-gray-800">Administrar usuarios del sistema</p>
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              href="/admin/settings"
+              className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow"
+            >
+              <h3 className="text-xl font-bold text-gray-800 mb-2">⚙️ Configuración</h3>
+              <p className="text-gray-800">Personalizar nombre y logo del taller</p>
             </Link>
           )}
         </div>

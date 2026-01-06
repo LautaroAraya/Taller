@@ -96,6 +96,19 @@ async function main() {
 
   console.log('✅ Productos de ejemplo creados');
 
+  // Crear configuración por defecto
+  await prisma.settings.upsert({
+    where: { id: 'settings-default' },
+    update: {},
+    create: {
+      id: 'settings-default',
+      shopName: 'Taller Mecánico',
+      shopSubtitle: 'Repuestos y Mercadería',
+    },
+  });
+
+  console.log('✅ Configuración por defecto creada');
+
   console.log('🎉 Seed completado exitosamente!');
 }
 

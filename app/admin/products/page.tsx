@@ -22,6 +22,9 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -60,18 +63,43 @@ export default function ProductsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const url = editingProduct 
-      ? `/api/products/${editingProduct.id}`
-      : '/api/products';
-    
-    const method = editingProduct ? 'PUT' : 'POST';
+    setUploading(true);
 
     try {
+      let imageUrl = formData.image;
+
+      // Si hay un archivo nuevo, subirlo primero
+      if (imageFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', imageFile);
+
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (uploadRes.ok) {
+          const { url } = await uploadRes.json();
+          imageUrl = url;
+        } else {
+          const error = await uploadRes.json();
+          alert(error.error || 'Error al subir imagen');
+          setUploading(false);
+          return;
+        }
+      }
+
+      // Crear/actualizar producto
+      const url = editingProduct 
+        ? `/api/products/${editingProduct.id}`
+        : '/api/products';
+      
+      const method = editingProduct ? 'PUT' : 'POST';
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, image: imageUrl }),
       });
 
       if (res.ok) {
@@ -80,6 +108,9 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error('Error:', error);
+      alert('Error al guardar producto');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -106,7 +137,22 @@ export default function ProductsPage() {
       category: product.category || '',
       image: product.image || '',
     });
+    setImageFile(null);
+    setImagePreview('');
     setShowForm(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Crear preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const resetForm = () => {
@@ -118,6 +164,8 @@ export default function ProductsPage() {
       category: '',
       image: '',
     });
+    setImageFile(null);
+    setImagePreview('');
     setEditingProduct(null);
     setShowForm(false);
   };
@@ -155,80 +203,89 @@ export default function ProductsPage() {
 
         {showForm && isAdmin && (
           <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-            <h2 className="text-xl font-bold mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
               {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
             </h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Nombre *</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Nombre *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Categoría</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Categoría</label>
                 <input
                   type="text"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Precio *</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Precio *</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Stock *</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Stock *</label>
                 <input
                   type="number"
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
                   required
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Descripción</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Descripción</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
                   rows={3}
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">URL de Imagen</label>
+                <label className="block text-sm font-bold text-gray-900 mb-1">Imagen del Producto</label>
                 <input
-                  type="url"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="https://ejemplo.com/imagen.jpg"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
+                {(imagePreview || formData.image) && (
+                  <div className="mt-2">
+                    <img 
+                      src={imagePreview || formData.image} 
+                      alt="Preview" 
+                      className="h-32 object-cover rounded-lg border"
+                    />
+                  </div>
+                )}
               </div>
               <div className="md:col-span-2 flex gap-2">
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                  disabled={uploading}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  {editingProduct ? 'Actualizar' : 'Crear'}
+                  {uploading ? 'Guardando...' : (editingProduct ? 'Actualizar' : 'Crear')}
                 </button>
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="bg-gray-300 px-6 py-2 rounded-lg hover:bg-gray-400"
+                  className="bg-gray-300 text-gray-900 font-semibold px-6 py-2 rounded-lg hover:bg-gray-400"
                 >
                   Cancelar
                 </button>
@@ -239,13 +296,13 @@ export default function ProductsPage() {
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left">Producto</th>
-                <th className="px-4 py-3 text-left">Categoría</th>
-                <th className="px-4 py-3 text-right">Precio</th>
-                <th className="px-4 py-3 text-right">Stock</th>
-                {isAdmin && <th className="px-4 py-3 text-center">Acciones</th>}
+                <th className="px-4 py-3 text-left font-bold text-gray-900">Producto</th>
+                <th className="px-4 py-3 text-left font-bold text-gray-900">Categoría</th>
+                <th className="px-4 py-3 text-right font-bold text-gray-900">Precio</th>
+                <th className="px-4 py-3 text-right font-bold text-gray-900">Stock</th>
+                {isAdmin && <th className="px-4 py-3 text-center font-bold text-gray-900">Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -253,14 +310,14 @@ export default function ProductsPage() {
                 <tr key={product.id} className="border-t">
                   <td className="px-4 py-3">
                     <div>
-                      <div className="font-semibold">{product.name}</div>
+                      <div className="font-semibold text-gray-900">{product.name}</div>
                       {product.description && (
                         <div className="text-sm text-gray-600">{product.description}</div>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3">{product.category || '-'}</td>
-                  <td className="px-4 py-3 text-right font-semibold">${product.price.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-gray-900">{product.category || '-'}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-gray-900">${product.price.toFixed(2)}</td>
                   <td className="px-4 py-3 text-right">
                     <span className={`px-2 py-1 rounded text-sm ${
                       product.stock === 0 ? 'bg-red-100 text-red-800' :
