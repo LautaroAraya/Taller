@@ -52,7 +52,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Email o contraseña incorrectos');
       } else {
-        router.push('/admin/dashboard');
+        router.push('/admin/panel');
         router.refresh();
       }
     } catch (error) {

@@ -105,7 +105,7 @@ export default function OrdersPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Gestión de Pedidos</h1>
-            <Link href="/admin/dashboard" className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
+            <Link href="/admin/panel" className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
               ← Volver
             </Link>
           </div>

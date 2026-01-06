@@ -30,7 +30,7 @@ export default function SettingsPage() {
     if (status === 'unauthenticated') {
       router.push('/admin/login');
     } else if (status === 'authenticated' && session.user?.role !== 'ADMIN') {
-      router.push('/admin/dashboard');
+      router.push('/admin/panel');
     }
   }, [status, session, router]);
 
@@ -132,7 +132,7 @@ export default function SettingsPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Configuración del Taller</h1>
-            <Link href="/admin/dashboard" className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
+            <Link href="/admin/panel" className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
               ← Volver
             </Link>
           </div>
