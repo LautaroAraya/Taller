@@ -77,6 +77,7 @@ export default function DashboardPage() {
   }
 
   const isAdmin = session.user?.role === 'ADMIN';
+  const roleLabel = session.user?.role === 'EMPLOYEE' ? 'EMPLEADO' : session.user?.role;
   const lowStockProducts = products.filter(p => p.stock < 5);
   const outOfStockProducts = products.filter(p => p.stock === 0);
   const pendingOrders = orders.filter(o => o.status === 'PENDING');
@@ -90,7 +91,7 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-2xl font-bold">Panel de Administración</h1>
               <p className="text-blue-100 text-sm">
-                Bienvenido, {session.user?.name} ({session.user?.role})
+                Bienvenido, {session.user?.name} ({roleLabel})
               </p>
             </div>
             <div className="flex gap-4">
@@ -100,12 +101,14 @@ export default function DashboardPage() {
               >
                 Ver Tienda
               </Link>
-              <Link
-                href="/admin/profile"
-                className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                Editar Perfil
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/profile"
+                  className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  Editar Perfil
+                </Link>
+              )}
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"

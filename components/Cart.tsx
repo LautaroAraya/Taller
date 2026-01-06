@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useCart } from '@/lib/CartContext';
 
-const WHATSAPP_NUMBER = '3498619624';
+interface SettingsResponse {
+  shopPhone?: string | null;
+}
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCart();
@@ -13,6 +15,8 @@ export default function Cart() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
   const [creatingOrder, setCreatingOrder] = useState(false);
+  const [shopPhone, setShopPhone] = useState<string>('');
+  const [loadingSettings, setLoadingSettings] = useState<boolean>(true);
 
   const isValidPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');
@@ -31,9 +35,33 @@ export default function Cart() {
     return Object.keys(next).length === 0;
   };
 
+  // Cargar teléfono del taller desde Settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data: SettingsResponse = await res.json();
+          const digits = String(data.shopPhone || '').replace(/\D/g, '');
+          setShopPhone(digits);
+        }
+      } catch (e) {
+        console.error('Error cargando configuración', e);
+      } finally {
+        setLoadingSettings(false);
+      }
+    };
+    loadSettings();
+  }, []);
+
   const sendToWhatsApp = async () => {
     if (items.length === 0) return;
     if (!validate()) return;
+    // Validar teléfono del taller
+    if (!shopPhone || !isValidPhone(shopPhone)) {
+      alert('Teléfono del taller no configurado o inválido. Configuralo en Ajustes.');
+      return;
+    }
 
     setCreatingOrder(true);
     // Crear pedido en backend
@@ -69,7 +97,7 @@ export default function Cart() {
       const total = getTotal();
       const fullMessage = `*Pedido ${orderData?.orderNumber ?? ''}*\n*Cliente:* ${customerName || 'Cliente'}\n*Teléfono:* ${customerPhone || '—'}\n\n${message}\n\n*Total: $${total.toFixed(2)}*`;
 
-      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(fullMessage)}`;
+      const whatsappUrl = `https://wa.me/${shopPhone}?text=${encodeURIComponent(fullMessage)}`;
       window.open(whatsappUrl, '_blank');
       setIsOpen(false);
       clearCart();
@@ -222,7 +250,14 @@ export default function Cart() {
                   </button>
                   <button
                     onClick={sendToWhatsApp}
-                    disabled={creatingOrder || !customerName.trim() || !isValidPhone(customerPhone)}
+                    disabled={
+                      creatingOrder ||
+                      !customerName.trim() ||
+                      !isValidPhone(customerPhone) ||
+                      loadingSettings ||
+                      !shopPhone ||
+                      !isValidPhone(shopPhone)
+                    }
                     className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold disabled:opacity-70"
                   >
                     {creatingOrder ? 'Creando pedido...' : '💬 WhatsApp'}

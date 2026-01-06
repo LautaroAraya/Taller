@@ -17,6 +17,11 @@ export default function ProfilePage() {
     if (status === 'unauthenticated') {
       router.push('/admin/login');
     } else if (status === 'authenticated') {
+      // Solo ADMIN puede editar perfil
+      if (session?.user?.role !== 'ADMIN') {
+        router.push('/admin/panel');
+        return;
+      }
       setName(session?.user?.name || '');
       setLoading(false);
     }

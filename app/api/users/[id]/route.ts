@@ -35,8 +35,8 @@ export async function PUT(
   }
 
   const isAdmin = session.user?.role === 'ADMIN';
-  const isSelf = (session.user as any)?.id === params.id;
-  if (!isAdmin && !isSelf) {
+  // Solo ADMIN puede actualizar usuarios (incluido su propio perfil)
+  if (!isAdmin) {
     return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
   }
 
