@@ -100,6 +100,12 @@ export default function DashboardPage() {
               >
                 Ver Tienda
               </Link>
+              <Link
+                href="/admin/profile"
+                className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+              >
+                Editar Perfil
+              </Link>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"

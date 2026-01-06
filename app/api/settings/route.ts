@@ -13,6 +13,8 @@ export async function GET() {
         data: {
           shopName: 'Taller Mecánico',
           shopSubtitle: 'Repuestos y Mercadería',
+          shopAddress: '',
+          shopPhone: '',
         },
       });
     }
@@ -33,18 +35,18 @@ export async function PUT(request: NextRequest) {
     }
     
     const data = await request.json();
-    const { shopName, shopSubtitle, logo } = data;
+    const { shopName, shopSubtitle, logo, shopAddress, shopPhone } = data;
     
     let settings = await prisma.settings.findFirst();
     
     if (settings) {
       settings = await prisma.settings.update({
         where: { id: settings.id },
-        data: { shopName, shopSubtitle, logo },
+        data: { shopName, shopSubtitle, logo, shopAddress, shopPhone },
       });
     } else {
       settings = await prisma.settings.create({
-        data: { shopName, shopSubtitle, logo },
+        data: { shopName, shopSubtitle, logo, shopAddress, shopPhone },
       });
     }
     

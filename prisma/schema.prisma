@@ -63,6 +63,8 @@ model Settings {
   shopName    String   @default("Taller Mecánico")
   shopSubtitle String  @default("Repuestos y Mercadería")
   logo        String?
+  shopAddress String?
+  shopPhone   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

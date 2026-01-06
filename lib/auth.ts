@@ -45,13 +45,29 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
+        token.role = (user as any).role;
+        token.id = (user as any).id;
       }
       return token;
     },
     async session({ session, token }) {
+      // Siempre devolvemos la información fresca desde DB usando el id del token
       if (session.user) {
-        session.user.role = token.role as string;
+        try {
+          const user = await prisma.user.findUnique({ where: { id: token.id as string } });
+          if (user) {
+            session.user.id = user.id;
+            session.user.name = user.name;
+            session.user.email = user.email;
+            session.user.role = user.role;
+          } else {
+            session.user.role = token.role as string;
+            session.user.id = token.id as string;
+          }
+        } catch {
+          session.user.role = token.role as string;
+          session.user.id = token.id as string;
+        }
       }
       return session;
     },
@@ -61,7 +77,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 5 * 60, // 5 minutos en segundos
+    maxAge: 1 * 60, // 1 minuto en segundos
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

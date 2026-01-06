@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutos en milisegundos
+const INACTIVITY_TIMEOUT = 1 * 60 * 1000; // 1 minuto en milisegundos
 
 export default function SessionTimeout() {
   const { data: session } = useSession();

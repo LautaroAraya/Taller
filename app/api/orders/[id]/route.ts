@@ -57,3 +57,27 @@ export async function PUT(
     return NextResponse.json({ error: 'Error al actualizar pedido' }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
+
+  // Solo ADMIN puede eliminar pedidos
+  // @ts-ignore - user.rol personalizado
+  if (session.user?.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Prohibido' }, { status: 403 });
+  }
+
+  try {
+    await prisma.order.delete({ where: { id: params.id } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Error al eliminar pedido' }, { status: 500 });
+  }
+}

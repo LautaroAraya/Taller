@@ -33,6 +33,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'SENT' | 'PAID' | 'CANCELLED'>('ALL');
+  const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -43,6 +44,7 @@ export default function OrdersPage() {
   useEffect(() => {
     if (status === 'authenticated') {
       fetchOrders();
+      fetchSettings();
     }
   }, [status]);
 
@@ -60,6 +62,18 @@ export default function OrdersPage() {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        setSettings(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   const updateOrderStatus = async (id: string, status: string) => {
     try {
       const res = await fetch(`/api/orders/${id}`, {
@@ -69,12 +83,118 @@ export default function OrdersPage() {
       });
 
       if (res.ok) {
+        const updated = await res.json();
+        // Mantener abierto el modal mostrando el pedido actualizado
+        setSelectedOrder(updated);
         fetchOrders();
-        setSelectedOrder(null);
       }
     } catch (error) {
       console.error('Error:', error);
     }
+  };
+
+  const deleteOrder = async (id: string) => {
+    const confirmDel = window.confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.');
+    if (!confirmDel) return;
+    try {
+      const res = await fetch(`/api/orders/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        if (selectedOrder?.id === id) setSelectedOrder(null);
+        fetchOrders();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const printOrder = (order: Order) => {
+    const shopName = settings?.shopName || 'Taller Mecánico';
+    const shopSubtitle = settings?.shopSubtitle || '';
+    const logo = settings?.logo || '';
+    const shopAddress = settings?.shopAddress || '';
+    const shopPhone = settings?.shopPhone || '';
+    const dateStr = new Date(order.createdAt).toLocaleString('es-AR');
+    const itemsHtml = order.items
+      .map(
+        (i) => `
+          <tr>
+            <td style="padding:6px 4px;border-bottom:1px solid #e5e7eb">${i.product.name}</td>
+            <td style="padding:6px 4px;text-align:center;border-bottom:1px solid #e5e7eb">${i.quantity}</td>
+            <td style="padding:6px 4px;text-align:right;border-bottom:1px solid #e5e7eb">$${(i.price).toFixed(2)}</td>
+            <td style="padding:6px 4px;text-align:right;border-bottom:1px solid #e5e7eb">$${(i.price * i.quantity).toFixed(2)}</td>
+          </tr>`
+      )
+      .join('');
+
+    const html = `<!doctype html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>Boleta ${order.orderNumber || ''}</title>
+      <style>
+        @media print { .no-print { display:none } body { -webkit-print-color-adjust: exact; } }
+        body { font-family: ui-sans-serif, system-ui, Arial, Helvetica, sans-serif; color:#111827; }
+      </style>
+    </head>
+    <body>
+      <div style="max-width:780px;margin:0 auto;padding:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            ${logo ? `<img src="${logo}" alt="logo" style="height:60px;width:60px;object-fit:contain;border:1px solid #e5e7eb;border-radius:8px;padding:4px" />` : ''}
+            <div>
+              <div style="font-size:20px;font-weight:700">${shopName}</div>
+              ${shopSubtitle ? `<div style="font-size:12px;color:#6b7280">${shopSubtitle}</div>` : ''}
+              ${shopAddress || shopPhone ? `<div style="font-size:12px;color:#6b7280">${[shopAddress, shopPhone].filter(Boolean).join(' · ')}</div>` : ''}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:#6b7280">Fecha</div>
+            <div style="font-weight:600">${dateStr}</div>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0" />
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 16px 0">
+          <div>
+            <div style="font-size:12px;color:#6b7280">Cliente</div>
+            <div style="font-weight:600">${order.customerName}</div>
+            <div style="font-size:12px;color:#374151">${order.customerPhone}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:#6b7280">N° de Orden</div>
+            <div style="font-weight:700">${order.orderNumber || '—'}</div>
+            <div style="font-size:12px;color:#16a34a;font-weight:700">Pagado</div>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <thead>
+            <tr style="background:#f3f4f6">
+              <th style="text-align:left;padding:8px 4px">Producto</th>
+              <th style="text-align:center;padding:8px 4px">Cant.</th>
+              <th style="text-align:right;padding:8px 4px">Precio</th>
+              <th style="text-align:right;padding:8px 4px">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <div style="min-width:240px">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700">
+              <span>Total</span>
+              <span style="color:#16a34a">$${order.total.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:16px;color:#6b7280;font-size:12px">Gracias por su compra</div>
+      </div>
+      <script>window.print();</script>
+    </body>
+    </html>`;
+
+    const win = window.open('', '_blank', 'width=820,height=900');
+    if (!win) return;
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
   };
 
   if (status === 'loading' || loading) {
@@ -186,12 +306,30 @@ export default function OrdersPage() {
                           Enviar WSP ✓
                         </button>
                       )}
+                      {order.status === 'PAID' && (
+                        <button
+                          onClick={() => printOrder(order)}
+                          className="text-gray-900 hover:underline"
+                          title="Imprimir boleta"
+                        >
+                          🖨️ Boleta
+                        </button>
+                      )}
                       <button
                         onClick={() => setSelectedOrder(order)}
                         className="text-blue-600 hover:underline"
                       >
                         Ver Detalles
                       </button>
+                      {(session?.user as any)?.role === 'ADMIN' && (
+                        <button
+                          onClick={() => deleteOrder(order.id)}
+                          className="text-red-600 hover:underline"
+                          title="Eliminar pedido"
+                        >
+                          Eliminar
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -215,6 +353,7 @@ export default function OrdersPage() {
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Detalle del Pedido</h2>
                 <p className="text-gray-800 font-medium mt-1">{new Date(selectedOrder.createdAt).toLocaleString('es-AR')}</p>
+                <p className="text-gray-700 font-mono text-sm">N° Orden: {selectedOrder.orderNumber ?? '—'}</p>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
@@ -259,30 +398,39 @@ export default function OrdersPage() {
               </span>
             </div>
 
-            {(selectedOrder.status === 'PENDING' || selectedOrder.status === 'SENT') && (
-              <div className="flex gap-2">
-                {selectedOrder.status === 'PENDING' && (
+            <div className="flex gap-2">
+              {selectedOrder.status !== 'PAID' ? (
+                <>
+                  {selectedOrder.status === 'PENDING' && (
+                    <button
+                      onClick={() => updateOrderStatus(selectedOrder.id, 'SENT')}
+                      className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold"
+                    >
+                      ↗ Marcar Enviado por WhatsApp
+                    </button>
+                  )}
                   <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'SENT')}
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold"
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'PAID')}
+                    className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold"
                   >
-                    ↗ Marcar Enviado por WhatsApp
+                    ✓ Pagado
                   </button>
-                )}
+                  <button
+                    onClick={() => updateOrderStatus(selectedOrder.id, 'CANCELLED')}
+                    className="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 font-semibold"
+                  >
+                    ✗ Cancelar
+                  </button>
+                </>
+              ) : (
                 <button
-                  onClick={() => updateOrderStatus(selectedOrder.id, 'PAID')}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold"
+                  onClick={() => printOrder(selectedOrder)}
+                  className="flex-1 bg-gray-200 text-gray-900 py-3 rounded-lg hover:bg-gray-300 font-semibold"
                 >
-                  ✓ Pagado
+                  🖨️ Imprimir Boleta
                 </button>
-                <button
-                  onClick={() => updateOrderStatus(selectedOrder.id, 'CANCELLED')}
-                  className="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 font-semibold"
-                >
-                  ✗ Cancelar
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}

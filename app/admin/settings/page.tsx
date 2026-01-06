@@ -10,6 +10,8 @@ interface Settings {
   shopName: string;
   shopSubtitle: string;
   logo: string | null;
+  shopAddress?: string | null;
+  shopPhone?: string | null;
 }
 
 export default function SettingsPage() {
@@ -24,6 +26,8 @@ export default function SettingsPage() {
     shopName: '',
     shopSubtitle: '',
     logo: '',
+    shopAddress: '',
+    shopPhone: '',
   });
 
   useEffect(() => {
@@ -49,6 +53,8 @@ export default function SettingsPage() {
           shopName: data.shopName,
           shopSubtitle: data.shopSubtitle,
           logo: data.logo || '',
+          shopAddress: data.shopAddress || '',
+          shopPhone: data.shopPhone || '',
         });
       }
     } catch (error) {
@@ -154,6 +160,29 @@ export default function SettingsPage() {
                 required
                 placeholder="Ej: Taller Mecánico"
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-2">Dirección</label>
+                <input
+                  type="text"
+                  value={formData.shopAddress}
+                  onChange={(e) => setFormData({ ...formData, shopAddress: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
+                  placeholder="Ej: Av. Siempre Viva 742"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-2">Teléfono</label>
+                <input
+                  type="text"
+                  value={formData.shopPhone}
+                  onChange={(e) => setFormData({ ...formData, shopPhone: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
+                  placeholder="Ej: +54 9 3498 123456"
+                />
+              </div>
             </div>
 
             <div>

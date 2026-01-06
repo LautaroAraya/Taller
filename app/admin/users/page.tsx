@@ -19,6 +19,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<User | null>(null);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -81,6 +82,35 @@ export default function UsersPage() {
       const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
       if (res.ok) {
         fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    const payload: any = { name: editing.name };
+    if (editing.role) payload.role = editing.role;
+    if ((editing as any).password && (editing as any).password.length >= 6) {
+      payload.password = (editing as any).password;
+    }
+    try {
+      const res = await fetch(`/api/users/${editing.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        setEditing(null);
+        fetchUsers();
+        // Si el admin edita su propio perfil, recargar para refrescar nombre del header
+        if (session?.user?.id === editing.id) {
+          window.location.reload();
+        }
+      } else {
+        alert('Error al actualizar usuario');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -217,18 +247,78 @@ export default function UsersPage() {
                     {new Date(user.createdAt).toLocaleDateString('es-AR')}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleDelete(user.id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Eliminar
-                    </button>
+                    <div className="flex items-center justify-center gap-4">
+                      <button
+                        onClick={() => setEditing(user)}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="text-red-600 hover:underline"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {editing && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-bold text-gray-900">Editar Usuario</h3>
+                <button onClick={() => setEditing(null)} className="text-2xl text-gray-500">×</button>
+              </div>
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-1">Nombre</label>
+                  <input
+                    type="text"
+                    value={editing.name}
+                    onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-1">Rol</label>
+                  <select
+                    value={editing.role}
+                    onChange={(e) => setEditing({ ...editing, role: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-gray-900"
+                    disabled={session?.user?.id === editing.id}
+                  >
+                    <option value="EMPLOYEE">Empleado</option>
+                    <option value="ADMIN">Administrador</option>
+                  </select>
+                  {session?.user?.id === editing.id && (
+                    <p className="text-xs text-gray-600 mt-1">No podés cambiar tu propio rol.</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 mb-1">Nueva contraseña</label>
+                  <input
+                    type="password"
+                    onChange={(e) => setEditing({ ...(editing as any), password: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
+                    placeholder="Dejar vacío para no cambiar"
+                    minLength={6}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Guardar</button>
+                  <button type="button" onClick={() => setEditing(null)} className="bg-gray-300 text-gray-900 font-semibold px-6 py-2 rounded-lg hover:bg-gray-400">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
