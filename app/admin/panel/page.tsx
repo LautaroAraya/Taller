@@ -87,31 +87,31 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-blue-600 text-white shadow-lg">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
               <h1 className="text-2xl font-bold">Panel de Administración</h1>
               <p className="text-blue-100 text-sm">
                 Bienvenido, {session.user?.name} ({roleLabel})
               </p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-2 md:gap-4">
               <Link
                 href="/"
-                className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+                className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors text-sm md:text-base whitespace-nowrap"
               >
                 Ver Tienda
               </Link>
               {isAdmin && (
                 <Link
                   href="/admin/profile"
-                  className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+                  className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors text-sm md:text-base whitespace-nowrap"
                 >
                   Editar Perfil
                 </Link>
               )}
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm md:text-base whitespace-nowrap"
               >
                 Cerrar Sesión
               </button>

@@ -143,28 +143,32 @@ export default function Cart() {
                   {items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex gap-3 border rounded-lg p-3 bg-gray-50"
+                      className="border rounded-lg p-3 bg-gray-50"
                     >
-                      {item.image && (
-                        <div className="relative w-16 h-16 flex-shrink-0">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover rounded"
-                          />
+                      <div className="flex gap-3">
+                        {item.image && (
+                          <div className="relative w-16 h-16 flex-shrink-0">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-cover rounded"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 text-sm">
+                            {item.name}
+                          </h4>
+                          <p className="text-green-600 font-bold text-sm">
+                            ${item.price.toFixed(2)}
+                          </p>
                         </div>
-                      )}
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 text-sm">
-                          {item.name}
-                        </h4>
-                        <p className="text-green-600 font-bold text-sm">
-                          ${item.price.toFixed(2)}
-                        </p>
+                      </div>
 
-                        {/* Quantity Controls */}
-                        <div className="flex items-center gap-2 mt-2">
+                      {/* Quantity Controls */}
+                      <div className="flex items-center justify-between gap-2 mt-3">
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() =>
                               updateQuantity(item.id, item.quantity - 1)
@@ -188,18 +192,18 @@ export default function Cart() {
                           <span className="text-xs text-gray-600 ml-1">
                             (Stock: {item.stock})
                           </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-gray-900 text-sm">
+                            ${(item.price * item.quantity).toFixed(2)}
+                          </p>
                           <button
                             onClick={() => removeItem(item.id)}
-                            className="ml-auto text-red-600 hover:text-red-700 text-sm font-bold"
+                            className="text-red-600 hover:text-red-700 text-sm"
                           >
                             🗑️
                           </button>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </p>
                       </div>
                     </div>
                   ))}
