@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { put } from '@vercel/blob';
 import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,25 +25,19 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Crear carpeta uploads si no existe
-    const uploadDir = join(process.cwd(), 'public', 'uploads');
-    if (!existsSync(uploadDir)) {
-      mkdirSync(uploadDir, { recursive: true });
-    }
-
     // Generar nombre único para el archivo
     const timestamp = Date.now();
     const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filename = `${timestamp}-${originalName}`;
-    const filepath = join(uploadDir, filename);
 
-    // Guardar archivo
-    await writeFile(filepath, buffer);
+    // Subir a Vercel Blob (FS local no funciona en producción)
+    const blob = await put(join('uploads', filename), buffer, {
+      access: 'public',
+      contentType: file.type,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
 
-    // Retornar URL pública
-    const publicUrl = `/uploads/${filename}`;
-    
-    return NextResponse.json({ url: publicUrl }, { status: 200 });
+    return NextResponse.json({ url: blob.url }, { status: 200 });
   } catch (error) {
     console.error('Error uploading file:', error);
     return NextResponse.json({ error: 'Error al subir archivo' }, { status: 500 });
