@@ -22,16 +22,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El archivo es demasiado grande. Máximo 5MB.' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Generar nombre único para el archivo
     const timestamp = Date.now();
     const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filename = `${timestamp}-${originalName}`;
 
     // Subir a Vercel Blob (FS local no funciona en producción)
-    const blob = await put(join('uploads', filename), buffer, {
+    const blob = await put(`uploads/${filename}`, file, {
       access: 'public',
       contentType: file.type,
       token: process.env.BLOB_READ_WRITE_TOKEN,
