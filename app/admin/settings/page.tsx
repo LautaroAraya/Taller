@@ -21,6 +21,8 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     shopName: '',
@@ -73,6 +75,57 @@ export default function SettingsPage() {
         setLogoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBackup = async () => {
+    setBackupLoading(true);
+    try {
+      const res = await fetch('/api/admin/backup');
+      if (!res.ok) {
+        alert('Error al generar copia de seguridad');
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'backup-taller.json';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error backup', error);
+      alert('Error al generar copia de seguridad');
+    } finally {
+      setBackupLoading(false);
+    }
+  };
+
+  const handleRestore = async (file: File | null) => {
+    if (!file) return;
+    const confirmRestore = window.confirm('¿Está seguro? Todo lo nuevo se perderá y se volverá a la copia anterior.');
+    if (!confirmRestore) return;
+    setRestoreLoading(true);
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const res = await fetch('/api/admin/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(json),
+      });
+      if (!res.ok) {
+        alert('Error al restaurar la copia');
+        return;
+      }
+      alert('Copia restaurada correctamente');
+      // Refrescar settings por si cambian
+      fetchSettings();
+    } catch (error) {
+      console.error('Error restore', error);
+      alert('Error al restaurar la copia');
+    } finally {
+      setRestoreLoading(false);
     }
   };
 
@@ -145,7 +198,36 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Copia de Seguridad</h2>
+          <p className="text-sm text-gray-600 mb-4">Solo administrador. Exporta o restaura todos los datos (usuarios, productos, pedidos, settings).</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button
+              onClick={handleBackup}
+              disabled={backupLoading}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {backupLoading ? 'Generando...' : 'Hacer copia de seguridad'}
+            </button>
+            <label className="w-full">
+              <span
+                className={`block w-full text-center bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 cursor-pointer ${restoreLoading ? 'bg-gray-400 pointer-events-none' : ''}`}
+              >
+                {restoreLoading ? 'Restaurando...' : 'Subir copia de seguridad'}
+              </span>
+              <input
+                type="file"
+                accept="application/json"
+                className="hidden"
+                disabled={restoreLoading}
+                onChange={(e) => handleRestore(e.target.files?.[0] || null)}
+              />
+            </label>
+          </div>
+          <p className="text-xs text-red-600 mt-3">Al restaurar: todo lo nuevo se perderá y se volverá a la copia anterior.</p>
+        </div>
+
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Personalizar Taller</h2>
           
