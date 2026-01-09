@@ -105,6 +105,9 @@ export default function ProductsPage() {
       if (res.ok) {
         fetchProducts();
         resetForm();
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Error al guardar producto');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -194,7 +197,14 @@ export default function ProductsPage() {
       <div className="container mx-auto px-4 py-8">
         {isAdmin && (
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              if (showForm) {
+                resetForm();
+              } else {
+                resetForm();
+                setShowForm(true);
+              }
+            }}
             className="mb-6 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold"
           >
             {showForm ? 'Cancelar' : '+ Agregar Producto'}
@@ -231,6 +241,7 @@ export default function ProductsPage() {
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"
@@ -241,6 +252,7 @@ export default function ProductsPage() {
                 <label className="block text-sm font-bold text-gray-900 mb-1">Stock *</label>
                 <input
                   type="number"
+                  min="0"
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg text-gray-900 placeholder-gray-500"

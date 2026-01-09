@@ -8,6 +8,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   image: string | null;
+  stock: number;
 }
 
 interface CartContextType {
@@ -28,9 +29,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prevItems) => {
       const existing = prevItems.find((item) => item.id === product.id);
       if (existing) {
+        // No superar el stock disponible
+        const newQuantity = Math.min(existing.quantity + 1, product.stock);
+        if (newQuantity === existing.quantity) {
+          alert(`No hay más stock disponible. Stock máximo: ${product.stock}`);
+          return prevItems;
+        }
         return prevItems.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: newQuantity }
             : item
         );
       }
@@ -42,6 +49,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           price: product.price,
           quantity: 1,
           image: product.image,
+          stock: product.stock,
         },
       ];
     });
@@ -52,13 +60,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
+    // No permitir cantidades negativas
     if (quantity <= 0) {
       removeItem(productId);
     } else {
       setItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === productId ? { ...item, quantity } : item
-        )
+        prevItems.map((item) => {
+          if (item.id === productId) {
+            // No superar el stock disponible
+            const validQuantity = Math.min(quantity, item.stock);
+            if (validQuantity < quantity) {
+              alert(`No hay suficiente stock. Stock máximo: ${item.stock}`);
+            }
+            return { ...item, quantity: validQuantity };
+          }
+          return item;
+        })
       );
     }
   };

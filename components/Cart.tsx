@@ -180,10 +180,14 @@ export default function Cart() {
                             onClick={() =>
                               updateQuantity(item.id, item.quantity + 1)
                             }
-                            className="bg-gray-300 text-gray-700 px-2 py-1 rounded text-sm hover:bg-gray-400"
+                            disabled={item.quantity >= item.stock}
+                            className="bg-gray-300 text-gray-700 px-2 py-1 rounded text-sm hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             +
                           </button>
+                          <span className="text-xs text-gray-600 ml-1">
+                            (Stock: {item.stock})
+                          </span>
                           <button
                             onClick={() => removeItem(item.id)}
                             className="ml-auto text-red-600 hover:text-red-700 text-sm font-bold"

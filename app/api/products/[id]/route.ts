@@ -15,13 +15,24 @@ export async function PUT(
 
   try {
     const body = await request.json();
+    const price = parseFloat(body.price);
+    const stock = parseInt(body.stock);
+
+    // Validar que precio y stock no sean negativos
+    if (price < 0) {
+      return NextResponse.json({ error: 'El precio no puede ser negativo' }, { status: 400 });
+    }
+    if (stock < 0) {
+      return NextResponse.json({ error: 'El stock no puede ser negativo' }, { status: 400 });
+    }
+
     const product = await prisma.product.update({
       where: { id: params.id },
       data: {
         name: body.name,
         description: body.description,
-        price: parseFloat(body.price),
-        stock: parseInt(body.stock),
+        price,
+        stock,
         image: body.image,
         category: body.category,
       },
