@@ -262,8 +262,8 @@ export default function OrdersPage() {
           ))}
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <table className="w-full min-w-[900px]">
             <thead className="bg-gray-200">
               <tr>
                 <th className="px-4 py-3 text-left font-bold text-gray-900">N° Orden</th>
