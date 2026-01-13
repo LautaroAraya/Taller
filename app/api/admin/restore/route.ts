@@ -19,11 +19,16 @@ export async function POST(request: Request) {
 
   try {
     const payload = (await request.json()) as BackupPayload;
-    const users = payload.users || [];
-    const products = payload.products || [];
-    const orders = payload.orders || [];
-    const orderItems = payload.orderItems || [];
-    const settings = payload.settings || [];
+    const users = Array.isArray(payload.users) ? payload.users : [];
+    const products = Array.isArray(payload.products) ? payload.products : [];
+    const orders = Array.isArray(payload.orders) ? payload.orders : [];
+    const orderItems = Array.isArray(payload.orderItems) ? payload.orderItems : [];
+    const settings = Array.isArray(payload.settings) ? payload.settings : [];
+
+    const hasRestorableData = users.length + products.length + orders.length + orderItems.length + settings.length > 0;
+    if (!hasRestorableData) {
+      return NextResponse.json({ error: 'El archivo de backup está vacío o no es válido.' }, { status: 400 });
+    }
 
     await prisma.$transaction(async (tx) => {
       // Limpiar en orden de dependencias
@@ -58,6 +63,19 @@ export async function POST(request: Request) {
         for (const setting of settings) {
           await tx.settings.create({ data: setting });
         }
+      }
+
+      // Asegurar que quede al menos una configuración válida
+      const existsSettings = await tx.settings.findFirst();
+      if (!existsSettings) {
+        await tx.settings.create({
+          data: {
+            shopName: 'Taller Mecánico',
+            shopSubtitle: 'Repuestos y Mercadería',
+            shopAddress: '',
+            shopPhone: '',
+          },
+        });
       }
     });
 
